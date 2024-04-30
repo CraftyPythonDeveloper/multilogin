@@ -102,7 +102,7 @@ def start_profile(profile_id) -> webdriver:
     return driver
 
 
-def stop_profile(profile_id) -> None:
+def stop_profile(profile_id, web_driver) -> bool:
     global HEADERS, MLX_LAUNCHER
 
     r = requests.get(f'{MLX_LAUNCHER}/profile/stop/p/{profile_id}', headers=HEADERS)
@@ -111,6 +111,13 @@ def stop_profile(profile_id) -> None:
         print(f'\nError while stopping profile: {r.text}\n')
     else:
         print(f'\nProfile {profile_id} stopped.\n')
+
+    try:
+        web_driver.close()          # force close chrome
+    except:
+        pass
+
+    return True
 
 
 def create_profile():
@@ -193,16 +200,17 @@ def main(url, wait=5, retry=0, cleanup=True, max_retry=3):
             print(f"Maximum retry attempted, skipping this url: {url}")
             return False
         print(f"Captcha Detected, retrying attempt {retry + 1}..")
-        stop_profile(profile_id[0])
+        stop_profile(profile_id[0], driver)
         if cleanup:
             message = delete_profile(profile_id)
             print(message)
         time.sleep(1)
-        return main(url, retry=retry + 1)
+        # return main(url, retry=retry + 1)
+        return False    # if captcha detected, move to next url
 
     print("Successfully clicked the button, closing the chrome.")
     random_sleep()
-    stop_profile(profile_id[0])
+    stop_profile(profile_id[0], driver)
     if cleanup:
         message = delete_profile(profile_id)
         print(message)
