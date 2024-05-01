@@ -10,14 +10,6 @@ import random
 from itertools import cycle
 
 
-MLX_BASE = "https://api.multilogin.com"
-MLX_LAUNCHER = "https://launcher.mlx.yt:45001/api/v1"
-LOCALHOST = "http://127.0.0.1"
-HEADERS = {
- 'Accept': 'application/json',
- 'Content-Type': 'application/json'
- }
-
 # Email, password
 USERNAME = ""
 PASSWORD = ""
@@ -26,6 +18,16 @@ PASSWORD = ""
 FOLDER_ID = "da1ab5be-2a6e-4724-9215-e12373b5ed03"
 
 # WORKSPACE_ID = "cfed69bd-a7c5-4c7c-ad82-642179b19341"
+
+
+MLX_BASE = "https://api.multilogin.com"
+MLX_LAUNCHER = "https://launcher.mlx.yt:45001/api/v1"
+LOCALHOST = "http://127.0.0.1"
+HEADERS = {
+ 'Accept': 'application/json',
+ 'Content-Type': 'application/json'
+ }
+INJECT_JS = 'document.getElementById("myModal").parentNode.removeChild(document.getElementById("myModal"))'
 
 
 def random_sleep(min_=5, max_=15):
@@ -182,34 +184,25 @@ def main(url, wait=5, retry=0, cleanup=True, max_retry=3):
     action = ActionChains(driver)
     driver.get(url)
 
-    status = False
-    random_sleep()
+    random_sleep(8, 10)     # initial sleep after page load
     for i in range(5):
-        random_sleep(3, 5)  # wait between 6 and 10 seconds on each check before clicking, adjust accordingly
+
+        try:
+            driver.execute_script(INJECT_JS)
+        except:
+            pass
+
+        random_sleep(6, 8)  # wait between 6 and 8 seconds on each check before clicking, adjust accordingly
         try:
             move_mouse_randomly(action)  # move mouse randomly on each check, Note: you won't see the pointer movement however the mouse tracking events will see it.
             driver.find_element(By.TAG_NAME, "button").click()
-            status = True
             random_sleep(3, 5)
+            print("Successfully clicked the button, closing the chrome.")
             break
         except:
             continue
 
-    if not status:
-        if retry > max_retry:
-            print(f"Maximum retry attempted, skipping this url: {url}")
-            return False
-        print(f"Captcha Detected, retrying attempt {retry + 1}..")
-        stop_profile(profile_id[0], driver)
-        if cleanup:
-            message = delete_profile(profile_id)
-            print(message)
-        time.sleep(1)
-        # return main(url, retry=retry + 1)
-        return False    # if captcha detected, move to next url
-
-    print("Successfully clicked the button, closing the chrome.")
-    random_sleep()
+    random_sleep(5, 8)
     stop_profile(profile_id[0], driver)
     if cleanup:
         message = delete_profile(profile_id)
