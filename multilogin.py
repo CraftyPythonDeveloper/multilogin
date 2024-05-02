@@ -47,7 +47,8 @@ def move_mouse_randomly(act):
     :param act: action chain instance
     :return: True
     """
-    act.move_by_offset(random.randint(0, 100), random.randint(0, 100)).perform()
+    for _ in range(10):
+        act.move_by_offset(random.randint(0, 100), random.randint(0, 100)).perform()
     return True
 
 
