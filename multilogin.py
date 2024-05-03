@@ -52,6 +52,17 @@ def move_mouse_randomly(act):
     return True
 
 
+def random_scroll(driver, timeout=10):
+    scrolls = ['window.scrollTo(0, 800);', 'window.scrollTo(0, 0);']
+    counter = 0
+    for scroll in cycle(scrolls):
+        driver.execute_script(scroll)
+        time.sleep(0.5)
+        if timeout < counter:
+            break
+        counter += 1
+
+
 def signin(workspace_id=None) -> str:
     global USERNAME, PASSWORD, MLX_BASE
     payload = {
@@ -185,19 +196,28 @@ def main(url, wait=5, retry=0, cleanup=True, max_retry=3):
     action = ActionChains(driver)
     driver.get(url)
 
-    random_sleep(8, 10)     # initial sleep after page load
-    for i in range(5):
+    random_sleep(5, 8)     # initial sleep after page load
+    try:
+        random_scroll(driver, 5)
+    except:
+        stop_profile(profile_id[0], driver)
+        message = delete_profile(profile_id)
+        print(message)
+        return False
 
+    for i in range(5):
         try:
             driver.execute_script(INJECT_JS)
+            random_scroll(driver, 2)
         except:
             pass
 
-        random_sleep(6, 8)  # wait between 6 and 8 seconds on each check before clicking, adjust accordingly
+        random_sleep(3, 5)  # wait between 6 and 8 seconds on each check before clicking, adjust accordingly
         try:
             move_mouse_randomly(action)  # move mouse randomly on each check, Note: you won't see the pointer movement however the mouse tracking events will see it.
+            random_scroll(driver, 5)
             driver.find_element(By.TAG_NAME, "button").click()
-            random_sleep(3, 5)
+            random_sleep(6, 10)
             print("Successfully clicked the button, closing the chrome.")
             break
         except:
@@ -208,13 +228,11 @@ def main(url, wait=5, retry=0, cleanup=True, max_retry=3):
     if cleanup:
         message = delete_profile(profile_id)
         print(message)
-    random_sleep()
     return True
 
 
 if __name__ == "__main__":
-    urls = ["https://x.bitads.ai/lvdp6ajqzb2xl/lvfeo3gebs9a1", "https://x.bitads.ai/lvdp6ajqzb2xl/lvff8tnv079cw",
-            "https://x.bitads.ai/lty9sdtvcg55s/lvf1r1vahdvfz", "https://x.bitads.ai/lvdp6ajqzb2xl/lvf6ra7qj3sz2"]
+    urls = ["https://x.bitads.ai/lty9sdtvcg55s/lvf1r1vahdvfz"]
 
     # Auth
     access_token = signin()
