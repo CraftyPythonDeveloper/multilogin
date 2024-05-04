@@ -14,7 +14,7 @@ from itertools import cycle
 USERNAME = ""
 PASSWORD = ""
 
-# Your folder id
+# Your folder id (Dev)
 FOLDER_ID = "da1ab5be-2a6e-4724-9215-e12373b5ed03"
 
 # WORKSPACE_ID = "cfed69bd-a7c5-4c7c-ad82-642179b19341"
@@ -53,14 +53,9 @@ def move_mouse_randomly(act):
 
 
 def random_scroll(driver, timeout=10):
-    scrolls = ['window.scrollTo(0, 800);', 'window.scrollTo(0, 0);']
-    counter = 0
-    for scroll in cycle(scrolls):
-        driver.execute_script(scroll)
+    for _ in range(timeout*2):
+        driver.execute_script('window.scrollTo'+str((0, random.uniform(0, 800))))
         time.sleep(0.5)
-        if timeout < counter:
-            break
-        counter += 1
 
 
 def signin(workspace_id=None) -> str:
@@ -181,7 +176,7 @@ def create_profile():
 
 def delete_profile(profile_id):
     global HEADERS, MLX_BASE
-    delete_profile_payload = {"ids": profile_id, "permanently":False}
+    delete_profile_payload = {"ids": profile_id, "permanently": True}
     response = requests.post(f"{MLX_BASE}/profile/remove", json=delete_profile_payload, headers=HEADERS)
     return response.json()["status"]["message"]
 
